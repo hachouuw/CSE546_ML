@@ -72,13 +72,11 @@ def vanilla_solution(x: Vector, y: Vector, A: Matrix, B: Matrix) -> Vector:
         - In this context (and documentation of two functions above) vector means list of floats,
             and matrix means list of lists of floats
     """
-
-    
-
+    f = (vanilla_transpose(A)+A)@x + B@vanilla_transpose(y) #gradient wrt x
 
 
-
-    raise NotImplementedError("Your Code Goes Here")
+    # raise NotImplementedError("Your Code Goes Here")
+    return f
 
 
 @problem.tag("hw0-A")
@@ -101,7 +99,9 @@ def numpy_solution(
         - Make use of numpy docs: https://numpy.org/doc/
             You will use this link a lot throughout quarter, so it might be a good idea to bookmark it!
     """
-    raise NotImplementedError("Your Code Goes Here")
+    f = (np.transpose(A)+A)@np.array(x) + B@np.transpose(y)
+    # raise NotImplementedError("Your Code Goes Here")
+    return f
 
 
 def main():
