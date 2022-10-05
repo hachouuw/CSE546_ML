@@ -7,6 +7,7 @@ from utils import problem
 def main():
     required_std = 0.0025
     n = int(np.ceil(1.0 / (required_std * 2))) ** 2
+    print(n)
     ks = [1, 8, 64, 512]
     for k in ks:
         Y_k = np.sum(np.sign(np.random.randn(n, k)) * np.sqrt(1.0 / k), axis=1)
@@ -30,8 +31,12 @@ def plot_settings():
     #   - Add label "Observations" on x axis
     #   - Add label "Probability" on y axis
     #   - Render the plot with plt.show() call
+    plt.xlim(-3,3)
+    plt.xlabel('Observations')
+    plt.ylabel('Probability')
+    plt.show()
 
-    raise NotImplementedError("Your Code Goes Here")
+    # raise NotImplementedError("Your Code Goes Here")
 
 
 if __name__ == "__main__":

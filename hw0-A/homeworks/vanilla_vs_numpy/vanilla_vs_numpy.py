@@ -72,9 +72,17 @@ def vanilla_solution(x: Vector, y: Vector, A: Matrix, B: Matrix) -> Vector:
         - In this context (and documentation of two functions above) vector means list of floats,
             and matrix means list of lists of floats
     """
-    f = (vanilla_transpose(A)+A)@x + B@vanilla_transpose(y) #gradient wrt x
+    # f = (vanilla_transpose(A)+A)@x + B@vanilla_transpose(y) #gradient wrt x
 
+    n = len(x)
+    f = np.zeros([n])
+    for j in range(n):
+        row = []
+        for i in range(n):
+            row.append( x[i]*(A[i][j]+A[j][i]) + y[i]*B[i][j] )
+        f[j] = np.sum(row)
 
+    # map(sum, zip(list_a, list_b)
     # raise NotImplementedError("Your Code Goes Here")
     return f
 
@@ -99,7 +107,7 @@ def numpy_solution(
         - Make use of numpy docs: https://numpy.org/doc/
             You will use this link a lot throughout quarter, so it might be a good idea to bookmark it!
     """
-    f = (np.transpose(A)+A)@np.array(x) + B@np.transpose(y)
+    f = (A.T+A).T@x + B.T@y
     # raise NotImplementedError("Your Code Goes Here")
     return f
 
