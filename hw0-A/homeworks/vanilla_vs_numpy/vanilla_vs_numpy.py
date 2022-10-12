@@ -145,6 +145,7 @@ def main():
 
         print(f"Time for vanilla implementation: {vanilla_time / 1e6}ms")
         print(f"Time for numpy implementation: {numpy_time / 1e6}ms")
+        # print(f"Time difference: {vanilla_time - numpy_time / 1e6}ms")
 
         vanilla_times.append(vanilla_time)
         numpy_times.append(numpy_time)
