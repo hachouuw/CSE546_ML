@@ -1,3 +1,4 @@
+from turtle import shape
 import numpy as np
 
 from utils import load_dataset, problem
@@ -24,8 +25,14 @@ def train(x: np.ndarray, y: np.ndarray, _lambda: float) -> np.ndarray:
         np.ndarray: weight matrix of shape `(d, k)`
             which minimizes Regularized Squared Error on `x` and `y` with hyperparameter `_lambda`.
     """
-    raise NotImplementedError("Your Code Goes Here")
+    n,d = x.shape
+    # construct reg matrix
+    reg_matrix = _lambda * np.eye(d)
+    # reg_matrix[0, 0] = 0
 
+    # closed form solution, w = (X.TX+lambda I)^-1 X.Ty
+    W = np.linalg.solve(x.T @ x + reg_matrix, x.T @ y) 
+    return W
 
 @problem.tag("hw1-A")
 def predict(x: np.ndarray, w: np.ndarray) -> np.ndarray:
@@ -44,7 +51,12 @@ def predict(x: np.ndarray, w: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: predictions matrix of shape `(n,)` or `(n, 1)`.
     """
-    raise NotImplementedError("Your Code Goes Here")
+    m,d = x.shape
+    Y = np.zeros((m,1))
+    for i in range(m): #find larest value in each row of xw
+        XW = np.dot(x[i],w)
+        Y[i,0] = int(np.amax(XW))
+    return Y
 
 
 @problem.tag("hw1-A")
@@ -72,8 +84,11 @@ def one_hot(y: np.ndarray, num_classes: int) -> np.ndarray:
         ]
         ```
     """
-    raise NotImplementedError("Your Code Goes Here")
-
+    n = len(y)
+    Onehot = np.zeros((n,num_classes))
+    for i in range(n):
+        Onehot[i][y[i]] = 1
+    return Onehot
 
 def main():
 
