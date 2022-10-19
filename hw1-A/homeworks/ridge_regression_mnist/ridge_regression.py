@@ -52,10 +52,12 @@ def predict(x: np.ndarray, w: np.ndarray) -> np.ndarray:
         np.ndarray: predictions matrix of shape `(n,)` or `(n, 1)`.
     """
     m,d = x.shape
-    Y = np.zeros((m,1))
-    for i in range(m): #find larest value in each row of xw
-        XW = np.dot(x[i],w)
-        Y[i,0] = int(np.amax(XW))
+    # d,k = w.shape #k=10 (0~9)
+    Y = np.zeros(m)
+    for i in range(m): #find index of the largest value in each row of wx
+        WX = w.T@x[i] #np.dot(x[i],w)
+        Y[i] = np.argmax(WX)
+    print(Y)
     return Y
 
 
@@ -92,9 +94,12 @@ def one_hot(y: np.ndarray, num_classes: int) -> np.ndarray:
 
 def main():
 
+    # print(one_hot([2, 3, 1, 0], 4))
+
     (x_train, y_train), (x_test, y_test) = load_dataset("mnist")
     # Convert to one-hot
     y_train_one_hot = one_hot(y_train.reshape(-1), 10)
+    # print(y_train_one_hot)
 
     _lambda = 1e-4
 

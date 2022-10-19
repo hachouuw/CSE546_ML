@@ -19,10 +19,9 @@ class PolynomialRegression:
         """
         self.degree: int = degree
         self.reg_lambda: float = reg_lambda
-        # Fill in with matrix with the correct shape
         self.weight: np.ndarray = None  # type: ignore
-        # You can add additional fields
-        # raise NotImplementedError("Your Code Goes Here")
+        self.mean: float
+        self.std: float
 
     @staticmethod
     @problem.tag("hw1-A")
@@ -60,22 +59,20 @@ class PolynomialRegression:
 
         Note:
             You need to apply polynomial expansion and scaling at first.
-        """
-        # raise NotImplementedError("Your Code Goes Here")
-
-        
+        """      
         n = len(x)
         d = self.degree
         X = self.polyfeatures(x,d) #nxd matrix
 
-        #data standardization
-        # X = stats.zscore(X)
-        # X_zscored = np.zeros((n,d))
-        # for i in range(d):
-        #     X_zscored[:,i] = (X[:,i] - np.mean(X[:,i]))/np.std(X[:,i])
+        #data standardization # X = stats.zscore(X)
+        self.mean = np.mean(X,axis=0)
+        self.std = np.std(X,axis=0)
+        X_zscored = np.zeros((n,d))
+        for i in range(d):
+            X_zscored[:,i] = (X[:,i] - self.mean[i])/self.std[i]
 
         # add 1s column
-        X_ = np.c_[np.ones([n, 1]), X] #nx(d+1) matrix
+        X_ = np.c_[np.ones([n, 1]), X_zscored] #nx(d+1) matrix
 
         n, d = X_.shape
         # remove 1 for the extra column of ones we added to get the original num features
@@ -100,22 +97,18 @@ class PolynomialRegression:
         Returns:
             np.ndarray: Array of shape (n, 1) with predictions.
         """
-        # raise NotImplementedError("Your Code Goes Here")
         n = len(x)
         d = self.degree
         X = self.polyfeatures(x,d) #nxd matrix
 
-        #data standardization
-        # X = stats.zscore(X)
-        # X_zscored = np.zeros((n,d))
-        # for i in range(d):
-        #     X_zscored[:,i] = (X[:,i] - np.mean(X[:,i]))/np.std(X[:,i])
+        #data standardization # X = stats.zscore(X)
+        X_zscored = np.zeros((n,d))
+        for i in range(d):
+            X_zscored[:,i] = (X[:,i] - self.mean[i])/self.std[i]
 
         # add 1s column
-        X_ = np.c_[np.ones([n, 1]), X] #nx(d+1) matrix
-
-        # Y = Xw
-        Y = X_@self.weight 
+        X_ = np.c_[np.ones([n, 1]), X_zscored] #nx(d+1) matrix
+        Y = X_@self.weight  # Y = Xw
 
         return Y #nx1
 
@@ -131,8 +124,6 @@ def mean_squared_error(a: np.ndarray, b: np.ndarray) -> float:
     Returns:
         float: mean squared error between a and b.
     """
-    # raise NotImplementedError("Your Code Goes Here")
-    n = len(a)
     MSE = np.mean((a-b)**2)
     return MSE
 
@@ -169,12 +160,9 @@ def learningCurve(
     n = len(Xtrain)
     errorTrain = np.zeros(n)
     errorTest = np.zeros(n)
-    
-    # Fill in errorTrain and errorTest arrays
-    # raise NotImplementedError("Your Code Goes Here")
     model = PolynomialRegression(degree, reg_lambda)
     
-    for i in range(2,n,1):
+    for i in range(1,n,1):
         # train model using Xtrain[0:(i+1)]
         model.fit(Xtrain[0:(i+1)], Ytrain[0:(i+1)])
 
