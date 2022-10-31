@@ -16,7 +16,8 @@ def precalculate_a(X: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: An (d, ) array, which contains a corresponding `a` value for each feature.
     """
-    raise NotImplementedError("Your Code Goes Here")
+    A = 2*(np.linalg.norm(X, axis = 0)**2) #2-norm square of each column
+    return A
 
 
 @problem.tag("hw2-A")
@@ -41,7 +42,28 @@ def step(
         When calculating weight[k] you should use entries in weight[0, ..., k - 1] that have already been calculated and updated.
         This has no effect on entries weight[k + 1, k + 2, ...]
     """
-    raise NotImplementedError("Your Code Goes Here")
+    n,d = X.shape
+    w = weight
+    b = (1/n)*(np.sum(y - X@w))# calculate bias
+    c = np.zeros(d) #scalar
+    w = np.zeros(d) #scalar
+    for k in range(d):
+        WX = np.zeros(n)
+        ybWX = np.zeros(n)
+        for i in range(n):
+            w_ = w
+            w_[k] = 0 #zero at the kth entry
+            WX[i] = np.dot(w_,X[i,:])
+            ybWX[i] = y[i] - (b + WX[i])
+        c[k] = 2* np.dot(X[:,k],ybWX) #inner product
+        
+        if c[k] < -_lambda:
+            w[k] = (c[k] + _lambda)/a[k]
+        elif c[k] > _lambda:
+            w[k] = (c[k] - _lambda)/a[k]
+        else:
+            w[k] = 0
+    return w,b
 
 
 @problem.tag("hw2-A")
@@ -60,8 +82,15 @@ def loss(
     Returns:
         float: value of the loss function
     """
-    raise NotImplementedError("Your Code Goes Here")
+    n,d = X.shape
+    w = weight  
+    b = bias
+    loss = np.zeros(n)
+    for i in range(n):  
+        loss[i] = (np.dot(X[i,:],w) + b - y[i])**2 + _lambda*(np.linalg.norm(w,ord = 1))
+    Loss = np.sum(loss)
 
+    return Loss
 
 @problem.tag("hw2-A", start_line=4)
 def train(
@@ -102,8 +131,15 @@ def train(
     if start_weight is None:
         start_weight = np.zeros(X.shape[1])
     a = precalculate_a(X)
-    old_w: Optional[np.ndarray] = None
-    raise NotImplementedError("Your Code Goes Here")
+    # old_w: Optional[np.ndarray] = None
+
+    CONVERGED = False
+    old_w = start_weight
+    while CONVERGED is False:
+        w,b = step(X, y, old_w, a, _lambda)
+        old_w = np.copy(w)    
+        CONVERGED = convergence_criterion(w, old_w, convergence_delta)
+    return w,b
 
 
 @problem.tag("hw2-A")
@@ -121,15 +157,67 @@ def convergence_criterion(
     Returns:
         bool: False, if weight has not converged yet. True otherwise.
     """
-    raise NotImplementedError("Your Code Goes Here")
+    max_change = np.max(np.abs(weight - old_w))
+    if max_change < convergence_delta:
+        CONVERGED = True
+    else:
+        CONVERGED = False
+    return CONVERGED
 
 
 @problem.tag("hw2-A")
 def main():
     """
+    repeatedly call `train` and record various quantities around non zero entries in returned weight vector.
     Use all of the functions above to make plots.
     """
-    raise NotImplementedError("Your Code Goes Here")
+    n,d,k,sigma = 500,1000,100,1
+
+    # generate normal distributed data
+    X = np.random.normal(0.5, 2, (n,d)) #generate my own X (nxd) with random distribution
+    w_data = np.zeros(d) # given w to generate y
+    for j in range(k):
+        w_data[j] = j/k
+
+    # standardize X
+    mean = np.mean(X,axis=0)
+    std = np.std(X,axis=0)
+    X_zscored = np.zeros((n,d))
+    for i in range(d):
+        X_zscored[:,i] = (X[:,i] - mean[i])/std[i]
+
+    noise = np.random.normal(0, sigma, 500) # generate noise, bias = 0
+    y = X_zscored@w_data + noise # generate y = wx + noise
+
+    # choose the first lambda
+    y_mean = np.mean(y)
+    l = np.zeros(d)
+    for k in range(d):
+        l[k] = 2*abs(np.dot(X[:,k],y-y_mean))
+    lambda_max = np.max(l)
+
+    # training with different lambda values
+    trials = 3 # trial number
+    Lambda = [lambda_max, 10,  0.01]
+    weights = []
+    bias = []
+    Loss_function_value = []
+    for i in range(trials):
+        _lambda = Lambda[i]
+        w, b = train(X_zscored, y, _lambda, convergence_delta = 0.1, start_weight = None)
+        weights.append(w)
+        bias.append(b)
+        Loss_function_value.append( loss(X_zscored, y, w, b, _lambda) )
+
+    # plot
+    plt.figure()
+    plt.plot(Lambda,Loss_function_value)
+    plt.xscale('log')
+    # plt.title(f"PolyRegression with d = {d}, reg = {reg}")
+    # plt.plot(xpoints, ypoints, "b-")
+    # plt.xlabel("X")
+    # plt.ylabel("Y")
+    plt.show()
 
 
 if __name__ == "__main__":
