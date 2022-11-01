@@ -185,36 +185,60 @@ def main():
     noise = np.random.normal(0, sigma, 500) # generate noise, bias = 0
     y = X@w_data + noise # generate y = wx + noise
 
-    # choose the first lambda
+    # choose the first lambda (the max lambda)
     y_mean = np.mean(y)
     l = np.zeros(d)
-    for k in range(d):
-        l[k] = 2*abs(np.dot(X[:,k],y-y_mean))
+    for i in range(d):
+        l[i] = 2*abs(np.dot(X[:,i],y-y_mean))
     lambda_max = np.max(l)
 
     # training with different lambda values
     trials = 15 # number of trials
     weights = []
     bias = []
-    # Loss_function_value = []
     non_zero_w = []
     Lambdas = [lambda_max]
+    FDR = []
+    TPR = []
     for i in range(trials):
-        _lambda = Lambdas[i] #old_lambda/2
+        _lambda = Lambdas[i]
         w, b = train(X, y, _lambda, convergence_delta = 1e-4, start_weight = None)
         weights.append(w)
         bias.append(b)
-        # Loss_function_value.append( loss(X, y, w, b, _lambda) )
-        non_zero_w.append( np.count_nonzero(w) )
-        Lambdas.append(_lambda/2)
+        total_nonzeros = np.count_nonzero(w) # total # of nonzeros in estimated weights
+        non_zero_w.append( total_nonzeros )
+        Lambdas.append(_lambda/2) # reduce by half each time for regularization
 
-    # plot
+        correct_nonzero = 0
+        incorrect_nonzero = 0
+        for j in range(d):
+            if w_data[j] == 0:
+                if w[j] == 0:
+                    correct_nonzero += 1 
+                else: 
+                    incorrect_nonzero += 1
+
+        if total_nonzeros == 0:
+            total_nonzeros = 1e-8
+        FDR.append( incorrect_nonzero/total_nonzeros ) # false discovery rate
+        TPR.append( correct_nonzero/k ) #true positive rate 
+
+    # plot 5a
     plt.figure()
     plt.plot(Lambdas[:-1],non_zero_w)
     plt.xscale('log')
-    plt.title(f"HW2 A5")
+    plt.title(f"HW2 5a")
     plt.xlabel(r"$log(\lambda)$")
     plt.ylabel("# of non-zero features")
+    plt.show()
+
+    # plot 5b
+    plt.figure()
+    plt.plot(FDR,TPR,'*')
+    plt.xscale('log')
+    plt.title(f"HW2 5b")
+    plt.xlabel("FDR")
+    plt.ylabel("TPR")
     plt.show()
 
 if __name__ == "__main__":
