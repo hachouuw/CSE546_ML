@@ -44,17 +44,13 @@ def step(
     """
     n,d = X.shape
     w = weight
-    b = (1/n)*(np.sum(y - X@w))# calculate bias
+    b = (1/n)*(np.sum(y - X@w)) #np.mean(y - X@w) # calculate bias
     c = np.zeros(d) #scalar
     w = np.zeros(d) #scalar
     for k in range(d):
-        WX = np.zeros(n)
-        ybWX = np.zeros(n)
-        for i in range(n):
-            w_ = w
-            w_[k] = 0 #zero at the kth entry
-            WX[i] = np.dot(w_,X[i,:])
-            ybWX[i] = y[i] - (b + WX[i])
+        w_ = w
+        w_[k] = 0
+        ybWX = y - (b + X@w_)
         c[k] = 2* np.dot(X[:,k],ybWX) #inner product
         
         if c[k] < -_lambda:
@@ -174,20 +170,20 @@ def main():
     n,d,k,sigma = 500,1000,100,1
 
     # generate normal distributed data
-    X = np.random.normal(0.5, 2, (n,d)) #generate my own X (nxd) with random distribution
+    X_ = np.random.normal(0.5, sigma, (n,d)) #generate my own X (nxd) with random distribution
     w_data = np.zeros(d) # given w to generate y
     for j in range(k):
         w_data[j] = j/k
 
-    # standardize X
-    mean = np.mean(X,axis=0)
-    std = np.std(X,axis=0)
-    X_zscored = np.zeros((n,d))
+    # standardize X (z-scored)
+    mean = np.mean(X_,axis=0)
+    std = np.std(X_,axis=0)
+    X = np.zeros((n,d))
     for i in range(d):
-        X_zscored[:,i] = (X[:,i] - mean[i])/std[i]
+        X[:,i] = (X_[:,i] - mean[i])/std[i]
 
     noise = np.random.normal(0, sigma, 500) # generate noise, bias = 0
-    y = X_zscored@w_data + noise # generate y = wx + noise
+    y = X@w_data + noise # generate y = wx + noise
 
     # choose the first lambda
     y_mean = np.mean(y)
@@ -197,28 +193,29 @@ def main():
     lambda_max = np.max(l)
 
     # training with different lambda values
-    trials = 3 # trial number
-    Lambda = [lambda_max, 10,  0.01]
+    trials = 15 # number of trials
     weights = []
     bias = []
-    Loss_function_value = []
+    # Loss_function_value = []
+    non_zero_w = []
+    Lambdas = [lambda_max]
     for i in range(trials):
-        _lambda = Lambda[i]
-        w, b = train(X_zscored, y, _lambda, convergence_delta = 0.1, start_weight = None)
+        _lambda = Lambdas[i] #old_lambda/2
+        w, b = train(X, y, _lambda, convergence_delta = 1e-4, start_weight = None)
         weights.append(w)
         bias.append(b)
-        Loss_function_value.append( loss(X_zscored, y, w, b, _lambda) )
+        # Loss_function_value.append( loss(X, y, w, b, _lambda) )
+        non_zero_w.append( np.count_nonzero(w) )
+        Lambdas.append(_lambda/2)
 
     # plot
     plt.figure()
-    plt.plot(Lambda,Loss_function_value)
+    plt.plot(Lambdas[:-1],non_zero_w)
     plt.xscale('log')
-    # plt.title(f"PolyRegression with d = {d}, reg = {reg}")
-    # plt.plot(xpoints, ypoints, "b-")
-    # plt.xlabel("X")
-    # plt.ylabel("Y")
+    plt.title(f"HW2 A5")
+    plt.xlabel(r"$log(\lambda)$")
+    plt.ylabel("# of non-zero features")
     plt.show()
-
 
 if __name__ == "__main__":
     main()
