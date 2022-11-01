@@ -80,7 +80,7 @@ class PolynomialRegression:
 
         # construct reg matrix
         reg_matrix = self.reg_lambda * np.eye(d + 1)
-        # reg_matrix[0, 0] = 0
+        reg_matrix[0, 0] = 0
 
         # closed form solution, w = (X.TX+lambda I)^-1 X.Ty
         self.weight = np.linalg.solve(X_.T @ X_ + reg_matrix, X_.T @ y) #(d+1)x1
@@ -162,7 +162,7 @@ def learningCurve(
     errorTest = np.zeros(n)
     model = PolynomialRegression(degree, reg_lambda)
     
-    for i in range(1,n,1):
+    for i in range(n):
         # train model using Xtrain[0:(i+1)]
         model.fit(Xtrain[0:(i+1)], Ytrain[0:(i+1)])
 
