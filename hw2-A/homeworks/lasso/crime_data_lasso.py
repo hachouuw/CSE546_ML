@@ -1,18 +1,18 @@
 if __name__ == "__main__":
-    from coordinate_descent_algo import train,loss  # type: ignore
+    from coordinate_descent_algo import train  # type: ignore
 else:
-    from .coordinate_descent_algo import train,loss
+    from .coordinate_descent_algo import train
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from utils import load_dataset, problem
 
-import sys
-import pandas as pd
+# import sys
+# import pandas as pd
 
 """
-1. PolicPerPop numeric
+1. RentMedian numeric
 2. NumUnderPov numeric
 3. PctLess9thGrade numeric
 
@@ -29,16 +29,19 @@ def main():
     # Make sure you split them into observations and targets
     df_train, df_test = load_dataset("crime")
 
+
     # generate normal distributed data
     y_train = df_train["ViolentCrimesPerPop"].values #nx1
     y_test = df_test["ViolentCrimesPerPop"].values #nx1
     n = y_train.shape[0]
     n_ = y_test.shape[0]
 
-    d = 5 #number of features selected
+    # Features = ["RentMedian","NumUnderPov","PctLess9thGrade"]
+    Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up","householdsize"]
+    d = len(Features) #number of features selected
     X_train = np.zeros((n,d)) #nxd
     X_test = np.zeros((n_,d)) #nxd
-    Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up","householdsize"]
+
     for i in range(d):
         X_train[:,i] = df_train[Features[i]].values # ith column
         X_test[:,i] = df_test[Features[i]].values # ith column
@@ -80,11 +83,20 @@ def main():
         else: #when Lambdas[i] < 0.01:
             break
 
-    # plot 6d
+    # plot 6c
     plt.figure()
     plt.plot(Lambdas[:-1],non_zero_w,'--*')
     plt.xscale('log')
     plt.title(f"HW2 6c")
+    plt.xlabel(r"$log(\lambda)$")
+    plt.ylabel("# of non-zero features")
+    plt.show()
+
+    # plot 6d
+    plt.figure()
+    plt.plot(Lambdas[:-1],non_zero_w,'--*')
+    plt.xscale('log')
+    plt.title(f"HW2 6d")
     plt.xlabel(r"$log(\lambda)$")
     plt.ylabel("# of non-zero features")
     plt.show()
@@ -94,17 +106,20 @@ def main():
     plt.plot(Lambdas[:-1],MSE_train,'--*',label = 'training MSE')
     plt.plot(Lambdas[:-1],MSE_test,'--*',label = 'testing MSE')
     plt.xscale('log')
-    plt.title(f"HW2 6c")
+    plt.title(f"HW 6e")
     plt.xlabel(r"$log(\lambda)$")
     plt.ylabel("# of non-zero features")
     plt.legend()
     plt.show()
 
+    #6f
     #for lambda = 30:
     w, b = train(X_train, y_train, _lambda = 30, convergence_delta = 1e-4, start_weight = w_start)
     print('features:',w)
     print('the largest coefficient:', np.max(w))
     print('the feature with largest coefficient:', Features[np.argmax(w)]) #pctWSocSec
+    print('the most negative coefficient:', np.min(w))
+    print('the feature with most negative coefficient:', Features[np.argmin(w)]) #pctWSocSec
 
 if __name__ == "__main__":
     main()

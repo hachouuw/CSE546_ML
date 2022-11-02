@@ -242,5 +242,9 @@ def main():
     plt.ylabel("TPR")
     plt.show()
 
+    # return the lambda that gives us the ideal situation
+    print(Lambdas[np.argmax(TPR)])
+
+
 if __name__ == "__main__":
     main()
