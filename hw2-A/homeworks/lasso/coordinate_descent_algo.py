@@ -46,9 +46,8 @@ def step(
     w = weight
     b = (1/n)*(np.sum(y - X@w)) #np.mean(y - X@w) # calculate bias
     c = np.zeros(d) #scalar
-    w = np.zeros(d) #scalar
     for k in range(d):
-        w_ = w
+        w_ = np.copy(w)
         w_[k] = 0
         ybWX = y - (b + X@w_)
         c[k] = 2* np.dot(X[:,k],ybWX) #inner product
@@ -83,8 +82,8 @@ def loss(
     b = bias
     loss = np.zeros(n)
     for i in range(n):  
-        loss[i] = (np.dot(X[i,:],w) + b - y[i])**2 + _lambda*(np.linalg.norm(w,ord = 1))
-    Loss = np.sum(loss)
+        loss[i] = (np.dot(X[i,:],w) + b - y[i])**2
+    Loss = np.sum(loss) + _lambda*(np.linalg.norm(w,ord = 1))
 
     return Loss
 
@@ -218,10 +217,12 @@ def main():
                 else: 
                     incorrect_nonzero += 1
 
-        if total_nonzeros == 0:
-            total_nonzeros = 1e-8
-        FDR.append( incorrect_nonzero/total_nonzeros ) # false discovery rate
-        TPR.append( correct_nonzero/k ) #true positive rate 
+        if total_nonzeros == 0: #divide by zero
+            FDR.append( 0 ) # false discovery rate
+            TPR.append( 0 ) #true positive rate 
+        else:
+            FDR.append( incorrect_nonzero/total_nonzeros ) # false discovery rate
+            TPR.append( correct_nonzero/k ) #true positive rate 
 
     # plot 5a
     plt.figure()
