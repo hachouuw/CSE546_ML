@@ -170,9 +170,9 @@ def main():
 
     # generate normal distributed data
     X_ = np.random.normal(0.5, sigma, (n,d)) #generate my own X (nxd) with random distribution
-    w_data = np.zeros(d) # given w to generate y
+    w = np.zeros(d) # given w to generate y
     for j in range(k):
-        w_data[j] = j/k
+        w[j] = j/k
 
     # standardize X (z-scored)
     mean = np.mean(X_,axis=0)
@@ -182,7 +182,7 @@ def main():
         X[:,i] = (X_[:,i] - mean[i])/std[i]
 
     noise = np.random.normal(0, sigma, 500) # generate noise, bias = 0
-    y = X@w_data + noise # generate y = wx + noise
+    y = X@w + noise # generate y = wx + noise
 
     # choose the first lambda (the max lambda)
     y_mean = np.mean(y)
@@ -201,28 +201,21 @@ def main():
     TPR = []
     for i in range(trials):
         _lambda = Lambdas[i]
-        w, b = train(X, y, _lambda, convergence_delta = 1e-4, start_weight = None)
-        weights.append(w)
+        w_hat, b = train(X, y, _lambda, convergence_delta = 1e-4, start_weight = None)
+        weights.append(w_hat)
         bias.append(b)
-        total_nonzeros = np.count_nonzero(w) # total # of nonzeros in estimated weights
+        total_nonzeros = np.count_nonzero(w_hat) # total # of nonzeros in estimated weights
         non_zero_w.append( total_nonzeros )
         Lambdas.append(_lambda/2) # reduce by half each time for regularization
 
-        correct_nonzero = 0
-        incorrect_nonzero = 0
-        for j in range(d):
-            if w_data[j] == 0:
-                if w[j] == 0:
-                    correct_nonzero += 1 
-                else: 
-                    incorrect_nonzero += 1
-
-        if total_nonzeros == 0: #divide by zero
-            FDR.append( 0 ) # false discovery rate
-            TPR.append( 0 ) #true positive rate 
-        else:
-            FDR.append( incorrect_nonzero/total_nonzeros ) # false discovery rate
-            TPR.append( correct_nonzero/k ) #true positive rate 
+        #calculate FDR and TPR
+        w_hat_nonzeros = (w_hat != 0)
+        w_zeros = (w == 0)
+        w_nonzeros = (w != 0)
+        fdr = np.sum(w_zeros & w_hat_nonzeros)/np.sum(w_hat_nonzeros)
+        tpr = np.sum(w_nonzeros & w_hat_nonzeros)/k
+        FDR.append( fdr ) # false discovery rate
+        TPR.append( tpr ) #true positive rate 
 
     # plot 5a
     plt.figure()
@@ -235,8 +228,7 @@ def main():
 
     # plot 5b
     plt.figure()
-    plt.plot(FDR,TPR,'*')
-    plt.xscale('log')
+    plt.plot(FDR,TPR,'--*')
     plt.title(f"HW2 5b")
     plt.xlabel("FDR")
     plt.ylabel("TPR")
